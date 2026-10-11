@@ -1,4 +1,4 @@
-# Mentor Match — 5-Day Build Plan
+# Match Mentor — 5-Day Build Plan
 
 A web app for an existing 345+ member student/mentor community. Students request help, mentors respond, and organizers make and track matches. The build ends with a pilot of about 30 real users.
 
@@ -23,7 +23,7 @@ A web app for an existing 345+ member student/mentor community. Students request
 
 **1. Student request**
 `draft → open → (mentor interest) → matched → in_progress → completed | cancelled`
-- The request form covers topic or category, a description, urgency, preferred format (chat, call or in-person) and availability.
+- The request form covers a topic (see Decisions), target universities and application deadline, a description, urgency, preferred format (chat, call or in-person) and availability.
 
 **2. Mentor response**
 - The mentor sees open requests filtered by their topics.
@@ -119,8 +119,20 @@ In-app chat, calendar booking, ML matching, mobile app, SSO with the university.
 - **Matching logic grows too big:** keep the scoring simple and rule-based. Organizers make the final call.
 - **Low pilot engagement:** pick 30 people who have agreed in advance, and have organizers seed the first matches by hand.
 
-## Decisions to make before Day 1
-- [ ] Confirm the stack (Next.js/Prisma/Vercel above, or something else such as FastAPI + React)
-- [ ] Topic categories the community uses
-- [ ] Who the organizers are (the first accounts to seed)
-- [ ] Sign-in method: magic link or Google
+## Decisions (settled 2026-10-10)
+- [x] **Stack:** Next.js + Prisma/Postgres + Vercel, as proposed above.
+- [x] **Topic categories:** taken from the community's existing chat channels. Students are applicants to universities (mostly in the US), and mentors are current students who help with applications.
+  1. English proficiency tests (IELTS / TOEFL / Duolingo)
+  2. SAT
+  3. Essays
+  4. Letters of recommendation
+  5. Financial aid & scholarships
+  6. Admission & scholarship interviews
+  7. Universities outside the US
+  8. Visa & travel
+  9. Gap year
+  10. General / other
+
+  Topics live in a seed/config list so organizers can change them later.
+- [x] **Organizers:** two initial accounts, both with the admin role. Their emails go in the `SEED_ADMIN_EMAILS` environment variable (`.env` locally, Vercel env in production) rather than being committed to the repo.
+- [x] **Sign-in:** both methods. Google is the primary button and the email magic link (via Resend) is the fallback.
