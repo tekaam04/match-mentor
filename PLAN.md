@@ -64,7 +64,7 @@ A web app for an existing 345+ member student/mentor community. Students request
 |---|---|---|
 | App | **Next.js (App Router) + TypeScript** | UI and API in one repo, fast to ship |
 | DB | **Postgres** (Neon or Supabase) + **Prisma** | Relational data and easy migrations |
-| Auth | **Auth.js** with email magic links (or Google) | No passwords to manage; role stored on the user |
+| Auth | **Better Auth** with Google + email magic links | Stable successor to Auth.js; no passwords; role stored on the user |
 | UI | Tailwind + shadcn/ui | Fast, clean forms and tables |
 | Email | Resend | Simple transactional email |
 | Tests | Vitest for unit and API route tests against a test DB, plus one Playwright smoke test | |
@@ -76,8 +76,8 @@ A web app for an existing 345+ member student/mentor community. Students request
 ### Day 1: Foundation
 - Scaffold Next.js, Tailwind, Prisma and ESLint.
 - Write the Prisma schema and first migration, plus seed data (a few users per role, requests and mentors).
-- Set up Auth.js sign-in and put the role on the session.
-- Add RBAC helpers (`requireRole()`) for routes and pages, plus middleware.
+- Set up Better Auth sign-in and put the role on the session.
+- Add RBAC helpers (`requireRole()`) for routes and pages, plus proxy (Next 16 middleware).
 - Add a GitHub Actions CI workflow (lint, typecheck, test, build) and get it passing.
 - **End of day:** I can sign in as each role and land on a role-specific placeholder page, and CI is green.
 

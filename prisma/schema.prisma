@@ -1,0 +1,274 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  student
+  mentor
+  organizer
+  admin
+}
+
+enum RequestStatus {
+  draft
+  open
+  matched
+  in_progress
+  completed
+  cancelled
+}
+
+enum Urgency {
+  low
+  normal
+  high
+}
+
+enum MeetingFormat {
+  chat
+  call
+  in_person
+}
+
+enum MatchStatus {
+  active
+  completed
+  cancelled
+}
+
+enum MatchEventType {
+  created
+  reassigned
+  completed
+  cancelled
+  note
+}
+
+// ─── Auth (field names are dictated by Better Auth) ───────────────────────────
+
+model User {
+  id            String   @id
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  role          Role     @default(student)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions       Session[]
+  accounts       Account[]
+  studentProfile StudentProfile?
+  mentorProfile  MentorProfile?
+  requests       MentorshipRequest[]
+  interests      MentorInterest[]
+  mentorMatches  Match[]             @relation("MatchMentor")
+  organizedMatch Match[]             @relation("MatchOrganizer")
+  matchEvents    MatchEvent[]
+  feedback       Feedback[]
+  invitesSent    Invite[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ─── Domain ───────────────────────────────────────────────────────────────────
+
+/// Help categories, editable without a code change.
+model Topic {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  label     String
+  sortOrder Int     @default(0)
+  active    Boolean @default(true)
+
+  students StudentProfile[]    @relation("StudentTopics")
+  mentors  MentorProfile[]     @relation("MentorTopics")
+  requests MentorshipRequest[]
+
+  @@map("topic")
+}
+
+model StudentProfile {
+  userId             String   @id
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio                String?
+  targetUniversities String[]
+  availability       String?
+  topics             Topic[]  @relation("StudentTopics")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("student_profile")
+}
+
+model MentorProfile {
+  userId       String   @id
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio          String?
+  university   String?
+  availability String?
+  /// Maximum number of active matches at once.
+  capacity     Int      @default(3)
+  topics       Topic[]  @relation("MentorTopics")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("mentor_profile")
+}
+
+model MentorshipRequest {
+  id                 String        @id @default(cuid())
+  studentId          String
+  student            User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  topicId            String
+  topic              Topic         @relation(fields: [topicId], references: [id])
+  title              String
+  description        String
+  targetUniversities String[]
+  deadline           DateTime?
+  urgency            Urgency       @default(normal)
+  format             MeetingFormat @default(chat)
+  availability       String?
+  status             RequestStatus @default(open)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  interests MentorInterest[]
+  match     Match?
+
+  @@index([status])
+  @@index([studentId])
+  @@map("mentorship_request")
+}
+
+model MentorInterest {
+  id        String            @id @default(cuid())
+  requestId String
+  request   MentorshipRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  mentorId  String
+  mentor    User              @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  note      String?
+  createdAt DateTime          @default(now())
+
+  @@unique([requestId, mentorId])
+  @@map("mentor_interest")
+}
+
+/// One match per request; reassignment changes mentorId and is recorded in MatchEvent.
+model Match {
+  id          String            @id @default(cuid())
+  requestId   String            @unique
+  request     MentorshipRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  mentorId    String
+  mentor      User              @relation("MatchMentor", fields: [mentorId], references: [id])
+  organizerId String?
+  organizer   User?             @relation("MatchOrganizer", fields: [organizerId], references: [id], onDelete: SetNull)
+  status      MatchStatus       @default(active)
+  matchedAt   DateTime          @default(now())
+  completedAt DateTime?
+  cancelledAt DateTime?
+  updatedAt   DateTime          @updatedAt
+
+  events   MatchEvent[]
+  feedback Feedback?
+
+  @@index([mentorId, status])
+  @@map("match")
+}
+
+/// Append-only audit log; also the source for dashboard metrics.
+model MatchEvent {
+  id        String         @id @default(cuid())
+  matchId   String
+  match     Match          @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actor     User?          @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  type      MatchEventType
+  payload   Json?
+  createdAt DateTime       @default(now())
+
+  @@index([matchId])
+  @@map("match_event")
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  matchId   String   @unique
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@map("feedback")
+}
+
+model Invite {
+  id          String    @id @default(cuid())
+  email       String
+  role        Role
+  token       String    @unique
+  invitedById String
+  invitedBy   User      @relation(fields: [invitedById], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([email])
+  @@map("invite")
+}
