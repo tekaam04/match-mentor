@@ -29,6 +29,13 @@ Authorization works in three layers:
 2. `requireRole()` in `src/lib/dal.ts` validates the session against the database and enforces the role on every protected page.
 3. Every service in `src/server/` checks the acting user's role and ownership again, so server actions can't be called to bypass the UI. The integration tests in `tests/integration/` cover these rules.
 
+## How matching works
+
+1. A student posts a request. Mentors who know the topic see it and can say "I can help" or "Not for me".
+2. Organizers open **Requests**, pick a request and see mentors ranked by: offered to help → knows the topic → most free spots (`src/lib/match-score.ts`). Mentors at capacity, unapproved mentors and mentors who passed can't be matched.
+3. Confirming a match emails both people each other's contact details. Organizers can move a match to another mentor or end it, either reopening the request or closing it. Every change is logged in `match_event`.
+4. Either side marks the match complete, and the student is asked for a 1–5 rating.
+
 ## Local setup
 
 Requirements: Node 24+ and Docker.
@@ -73,7 +80,7 @@ prisma/              schema, migrations, seed
 src/app/             routes: landing, sign-in, (app)/onboarding, student, mentor, organizer
 src/components/      shared UI (ui/ = shadcn components, forms/ = form fields and hooks)
 src/lib/             auth, data access layer, roles, db, email
-src/server/          business logic: validation, permissions, requests, mentoring, profiles
+src/server/          business logic: validation, permissions, requests, mentoring, matching, emails
 src/proxy.ts         optimistic auth redirect
 tests/               integration tests and test helpers
 ```

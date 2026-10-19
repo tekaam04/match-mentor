@@ -7,7 +7,7 @@ import { requestSchema, type RequestInput } from "./validation";
 
 const studentRequestInclude = {
   topic: { select: { id: true, label: true } },
-  match: { select: { status: true, mentor: { select: { name: true } } } },
+  match: { select: { id: true, status: true, mentor: { select: { name: true } } } },
   _count: { select: { responses: { where: { kind: "interested" } } } },
 } satisfies Prisma.MentorshipRequestInclude;
 

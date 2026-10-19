@@ -4,7 +4,7 @@ import { UserMenu } from "@/components/user-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCurrentUser, type CurrentUser } from "@/lib/dal";
 import { needsOnboarding, ROLE_LABELS } from "@/lib/roles";
-import { pendingMentorCount } from "@/server/mentoring";
+import { openRequestCount, pendingMentorCount } from "@/server/mentoring";
 
 async function navFor(user: CurrentUser): Promise<NavItem[]> {
   if (needsOnboarding(user)) return [];
@@ -18,12 +18,14 @@ async function navFor(user: CurrentUser): Promise<NavItem[]> {
     case "mentor":
       return [
         { href: "/mentor", label: "Open requests" },
+        { href: "/mentor/matches", label: "My matches" },
         { href: "/mentor/profile", label: "Profile" },
       ];
     case "organizer":
     case "admin":
       return [
         { href: "/organizer", label: "Overview" },
+        { href: "/organizer/requests", label: "Requests", badge: await openRequestCount() },
         { href: "/organizer/mentors", label: "Mentors", badge: await pendingMentorCount() },
       ];
   }

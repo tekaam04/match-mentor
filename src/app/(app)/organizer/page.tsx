@@ -31,9 +31,15 @@ async function OrganizerHomeContent() {
 
   const stats = [
     { label: "Students", value: students, icon: <GraduationCap /> },
-    { label: "Approved mentors", value: mentors, icon: <HeartHandshake /> },
-    { label: "Open requests", value: openRequests, icon: <Inbox />, note: `${unanswered} with no offers yet` },
-    { label: "Active matches", value: activeMatches, icon: <Link2 /> },
+    { label: "Approved mentors", value: mentors, icon: <HeartHandshake />, href: "/organizer/mentors?status=approved" },
+    {
+      label: "Need a match",
+      value: openRequests,
+      icon: <Inbox />,
+      note: `${unanswered} with no offers yet`,
+      href: "/organizer/requests",
+    },
+    { label: "Active matches", value: activeMatches, icon: <Link2 />, href: "/organizer/requests?tab=active" },
   ];
 
   return (
@@ -58,8 +64,9 @@ async function OrganizerHomeContent() {
       )}
       <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((s) => (
-          <Card key={s.label}>
+          <Card key={s.label} className={s.href ? "relative transition-shadow hover:shadow-md" : undefined}>
             <CardContent>
+              {s.href && <Link href={s.href} className="absolute inset-0 rounded-xl" aria-label={s.label} />}
               <div className="flex items-center justify-between text-muted-foreground [&_svg]:size-5">
                 <dt className="text-sm font-medium">{s.label}</dt>
                 {s.icon}

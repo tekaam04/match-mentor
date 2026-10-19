@@ -107,3 +107,18 @@ export type ResponseInput = z.input<typeof responseSchema>;
 export const mentorReviewSchema = z.object({
   decision: z.enum(["approved", "rejected"]),
 });
+
+export const cancelMatchSchema = z.object({
+  reopen: z.preprocess((v) => v === true || v === "true" || v === "on", z.boolean()),
+  reason: optionalText(300),
+});
+
+export const feedbackSchema = z.object({
+  rating: z.coerce
+    .number({ message: "Choose a rating." })
+    .int()
+    .min(1, "Choose a rating from 1 to 5.")
+    .max(5, "Choose a rating from 1 to 5."),
+  comment: optionalText(1000),
+});
+export type FeedbackInput = z.input<typeof feedbackSchema>;

@@ -88,7 +88,8 @@ A web app for an existing 345+ member student/mentor community. Students request
 - API routes with zod validation, and API tests for each route, including permission-denied cases.
 - **End of day:** a student can post a request and a mentor can express interest, both covered by tests.
 
-### Day 3: Organizer matching
+### Day 3: Organizer matching ✅ (2026-10-19)
+- Built: request queue (needs a match / matched / closed), ranked mentor suggestions, confirm / move / end match with audit log, shared match page with contact details and next steps, mark complete, 1–5 star feedback, and emails for matches, moves, completion and mentor approval.
 - Organizer queue with suggested-mentor scoring.
 - Create, reassign and close a match, with `match_events` logging.
 - Email notifications for a new match.

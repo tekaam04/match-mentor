@@ -34,6 +34,7 @@ async function StudentRequest({ params }: { params: Promise<{ id: string }> }) {
   });
   const offers = request._count.responses;
   const isOpen = request.status === "open";
+  const match = request.match && request.match.status !== "cancelled" ? request.match : null;
 
   return (
     <>
@@ -63,15 +64,21 @@ async function StudentRequest({ params }: { params: Promise<{ id: string }> }) {
       />
       <div className="space-y-6">
         <Card className="border-primary/20 bg-secondary/50">
-          <CardContent className="flex items-start gap-4">
+          <CardContent className="flex flex-wrap items-start gap-4">
             <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
               <Users className="size-5" />
             </span>
             <div>
-              {request.match ? (
+              {match ? (
                 <>
-                  <p className="font-semibold">You’re matched with {request.match.mentor.name}</p>
-                  <p className="text-sm text-muted-foreground">They’ll reach out to plan your first conversation.</p>
+                  <p className="font-semibold">
+                    {match.status === "completed" ? "You worked with" : "You’re matched with"} {match.mentor.name}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {match.status === "completed"
+                      ? "This match is complete."
+                      : "See their contact details and next steps on your match page."}
+                  </p>
                 </>
               ) : isOpen ? (
                 <>
@@ -90,6 +97,11 @@ async function StudentRequest({ params }: { params: Promise<{ id: string }> }) {
                 <p className="font-semibold">This request is {request.status === "cancelled" ? "cancelled" : "closed"}.</p>
               )}
             </div>
+            {match && (
+              <Button asChild className="sm:ml-auto">
+                <Link href={`/matches/${match.id}`}>Open match</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
         <Card>

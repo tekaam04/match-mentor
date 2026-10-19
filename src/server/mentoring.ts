@@ -2,6 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { assertRole, type Actor } from "./actor";
 import { conflict, forbidden, notFound, parse } from "./errors";
+import { notifyMentorReviewed } from "./notifications";
 import { mentorReviewSchema, responseSchema, type ResponseInput } from "./validation";
 
 /** Loads the mentor's profile and requires that an organizer has approved it. */
@@ -125,14 +126,23 @@ export async function listMentorsByStatus(actor: Actor, status: "pending" | "app
 export async function reviewMentor(actor: Actor, mentorId: string, raw: { decision: string }) {
   assertRole(actor, "organizer");
   const { decision } = parse(mentorReviewSchema, raw);
-  const profile = await db.mentorProfile.findUnique({ where: { userId: mentorId } });
+  const profile = await db.mentorProfile.findUnique({
+    where: { userId: mentorId },
+    include: { user: { select: { name: true, email: true } } },
+  });
   if (!profile) throw notFound("Mentor not found.");
-  return db.mentorProfile.update({
+  const updated = await db.mentorProfile.update({
     where: { userId: mentorId },
     data: { status: decision, reviewedAt: new Date(), reviewedById: actor.id },
   });
+  if (profile.status !== decision) await notifyMentorReviewed(profile.user, decision);
+  return updated;
 }
 
 export function pendingMentorCount() {
   return db.mentorProfile.count({ where: { status: "pending", user: { role: "mentor" } } });
+}
+
+export function openRequestCount() {
+  return db.mentorshipRequest.count({ where: { status: "open" } });
 }

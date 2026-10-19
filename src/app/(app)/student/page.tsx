@@ -78,7 +78,7 @@ function RequestList({ requests, empty }: { requests: StudentRequest[]; empty?: 
             <h3 className="mt-3 font-heading text-lg font-semibold">{r.title}</h3>
             <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{r.description}</p>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 text-sm text-muted-foreground">
-              {r.match ? (
+              {r.match && r.match.status !== "cancelled" ? (
                 <span className="inline-flex items-center gap-1.5 font-medium text-success">
                   <Users className="size-4" />
                   Matched with {r.match.mentor.name}

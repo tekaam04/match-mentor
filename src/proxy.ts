@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSessionCookie } from "better-auth/cookies";
 
-const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/student", "/mentor", "/organizer"];
+const PROTECTED_PREFIXES = ["/dashboard", "/onboarding", "/student", "/mentor", "/organizer", "/matches"];
 
 /**
  * Optimistic check only: bounces requests without a session cookie to sign-in.
