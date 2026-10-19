@@ -21,6 +21,8 @@ const socialProviders: BetterAuthOptions["socialProviders"] = googleEnabled
 
 export const auth = betterAuth({
   database: prismaAdapter(db, { provider: "postgresql" }),
+  // Send sign-in failures (expired links, abandoned Google attempts) back to our own page.
+  onAPIError: { errorURL: "/sign-in" },
   socialProviders,
   account: {
     // Google verifies email ownership, so a Google sign-in can join an account first made via magic link.

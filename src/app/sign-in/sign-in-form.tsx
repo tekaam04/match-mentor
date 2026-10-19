@@ -1,22 +1,43 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+
+/** Messages for the ?error= codes Better Auth redirects back with. */
+const ERROR_MESSAGES: Record<string, string> = {
+  state_mismatch: "That sign-in attempt was already used or timed out. Please try again.",
+  please_restart_the_process: "That sign-in attempt timed out. Please try again.",
+  EXPIRED_TOKEN: "That sign-in link has expired. Request a new one below.",
+  INVALID_TOKEN: "That sign-in link is invalid or was already used. Request a new one below.",
+  ATTEMPTS_EXCEEDED: "That sign-in link was already used. Request a new one below.",
+  access_denied: "Google sign-in was cancelled.",
+};
+
+function messageFor(code: string | null): string | null {
+  if (!code) return null;
+  return ERROR_MESSAGES[code] ?? "Sign-in didn't complete. Please try again.";
+}
 
 type Status = { kind: "idle" } | { kind: "sending" } | { kind: "sent"; email: string } | { kind: "error"; message: string };
 
 export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<Status>({ kind: "idle" });
+  const urlError = messageFor(useSearchParams().get("error"));
 
   async function signInWithGoogle() {
-    await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+    await authClient.signIn.social({ provider: "google", callbackURL: "/dashboard", errorCallbackURL: "/sign-in" });
   }
 
   async function sendMagicLink(e: React.FormEvent) {
     e.preventDefault();
     setStatus({ kind: "sending" });
-    const { error } = await authClient.signIn.magicLink({ email, callbackURL: "/dashboard" });
+    const { error } = await authClient.signIn.magicLink({
+      email,
+      callbackURL: "/dashboard",
+      errorCallbackURL: "/sign-in",
+    });
     setStatus(error ? { kind: "error", message: error.message ?? "Something went wrong." } : { kind: "sent", email });
   }
 
@@ -30,6 +51,11 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
+      {urlError && status.kind === "idle" && (
+        <p role="alert" className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm">
+          {urlError}
+        </p>
+      )}
       {googleEnabled && (
         <>
           <button

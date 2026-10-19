@@ -13,7 +13,10 @@ export default function SignInPage() {
         <h1 className="text-2xl font-semibold tracking-tight">Sign in to Match Mentor</h1>
         <p className="text-sm text-foreground/70">New here? Signing in creates your account.</p>
       </div>
-      <SignInForm googleEnabled={googleEnabled} />
+      {/* The form reads ?error= from the URL, which must happen behind a Suspense boundary. */}
+      <Suspense fallback={null}>
+        <SignInForm googleEnabled={googleEnabled} />
+      </Suspense>
     </main>
   );
 }
