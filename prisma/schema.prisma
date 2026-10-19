@@ -37,6 +37,17 @@ enum MeetingFormat {
   in_person
 }
 
+enum MentorStatus {
+  pending
+  approved
+  rejected
+}
+
+enum MentorResponseKind {
+  interested
+  passed
+}
+
 enum MatchStatus {
   active
   completed
@@ -54,26 +65,29 @@ enum MatchEventType {
 // ─── Auth (field names are dictated by Better Auth) ───────────────────────────
 
 model User {
-  id            String   @id
+  id            String    @id
   name          String
-  email         String   @unique
-  emailVerified Boolean  @default(false)
+  email         String    @unique
+  emailVerified Boolean   @default(false)
   image         String?
-  role          Role     @default(student)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role          Role      @default(student)
+  /// Set once the user has chosen student/mentor and filled in their profile.
+  onboardedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  sessions       Session[]
-  accounts       Account[]
-  studentProfile StudentProfile?
-  mentorProfile  MentorProfile?
-  requests       MentorshipRequest[]
-  interests      MentorInterest[]
-  mentorMatches  Match[]             @relation("MatchMentor")
-  organizedMatch Match[]             @relation("MatchOrganizer")
-  matchEvents    MatchEvent[]
-  feedback       Feedback[]
-  invitesSent    Invite[]
+  sessions        Session[]
+  accounts        Account[]
+  studentProfile  StudentProfile?
+  mentorProfile   MentorProfile?
+  requests        MentorshipRequest[]
+  responses       MentorResponse[]
+  mentorsReviewed MentorProfile[]     @relation("MentorReviewer")
+  mentorMatches   Match[]             @relation("MatchMentor")
+  organizedMatch  Match[]             @relation("MatchOrganizer")
+  matchEvents     MatchEvent[]
+  feedback        Feedback[]
+  invitesSent     Invite[]
 
   @@map("user")
 }
@@ -156,16 +170,21 @@ model StudentProfile {
 }
 
 model MentorProfile {
-  userId       String   @id
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String       @id
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   bio          String?
   university   String?
   availability String?
   /// Maximum number of active matches at once.
-  capacity     Int      @default(3)
-  topics       Topic[]  @relation("MentorTopics")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  capacity     Int          @default(3)
+  topics       Topic[]      @relation("MentorTopics")
+  /// Mentors choose their role at sign-up; an organizer must approve them before they see requests.
+  status       MentorStatus @default(pending)
+  reviewedAt   DateTime?
+  reviewedById String?
+  reviewedBy   User?        @relation("MentorReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 
   @@map("mentor_profile")
 }
@@ -187,25 +206,29 @@ model MentorshipRequest {
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
 
-  interests MentorInterest[]
+  responses MentorResponse[]
   match     Match?
 
-  @@index([status])
+  @@index([status, createdAt])
   @@index([studentId])
   @@map("mentorship_request")
 }
 
-model MentorInterest {
-  id        String            @id @default(cuid())
+/// A mentor's answer to an open request: "I can help" (interested) or "not for me" (passed).
+model MentorResponse {
+  id        String             @id @default(cuid())
   requestId String
-  request   MentorshipRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  request   MentorshipRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
   mentorId  String
-  mentor    User              @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  mentor    User               @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  kind      MentorResponseKind
   note      String?
-  createdAt DateTime          @default(now())
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
   @@unique([requestId, mentorId])
-  @@map("mentor_interest")
+  @@index([mentorId])
+  @@map("mentor_response")
 }
 
 /// One match per request; reassignment changes mentorId and is recorded in MatchEvent.

@@ -37,6 +37,11 @@ export const auth = betterAuth({
         // Never settable by the client; only server code (hooks, organizers) assigns roles.
         input: false,
       },
+      onboardedAt: {
+        type: "date",
+        required: false,
+        input: false,
+      },
     },
   },
   databaseHooks: {

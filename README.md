@@ -6,7 +6,7 @@ See [PLAN.md](PLAN.md) for the 5-day build plan, data model and metrics.
 
 ## Stack
 
-- **Next.js 16** (App Router, TypeScript, Tailwind CSS 4)
+- **Next.js 16** (App Router, TypeScript, Tailwind CSS 4, shadcn/ui)
 - **PostgreSQL** + **Prisma 7**
 - **Better Auth**: Google sign-in and email magic links, with a role on each user
 - **Vitest**: unit tests and integration tests against a real Postgres database
@@ -21,12 +21,13 @@ See [PLAN.md](PLAN.md) for the 5-day build plan, data model and metrics.
 | Organizer | `/organizer` | All requests and mentors, matching, metrics |
 | Admin | `/organizer` | Everything an organizer can do, plus role changes |
 
-New users start as **students**. Emails listed in `SEED_ADMIN_EMAILS` become **admins** on first sign-in. Other roles are assigned by organizers. Clients can never set their own role.
+After signing in for the first time, users **onboard once**: they enter their name and choose "I'm applying" (student) or "I want to mentor". New mentors stay **pending** until an organizer approves them at `/organizer/mentors`, and only approved mentors can see and respond to requests. Emails listed in `SEED_ADMIN_EMAILS` become **admins** on first sign-in and skip onboarding. Clients can never set their own role.
 
-Authorization works in two layers:
+Authorization works in three layers:
 
 1. `src/proxy.ts` makes a fast cookie-only check and bounces signed-out users to `/sign-in`.
 2. `requireRole()` in `src/lib/dal.ts` validates the session against the database and enforces the role on every protected page.
+3. Every service in `src/server/` checks the acting user's role and ownership again, so server actions can't be called to bypass the UI. The integration tests in `tests/integration/` cover these rules.
 
 ## Local setup
 
@@ -49,6 +50,7 @@ Open http://localhost:3000.
 |---|---|
 | `student1@example.com` … `student3@example.com` | Student |
 | `mentor1@example.com` … `mentor3@example.com` | Mentor |
+| `mentor4@example.com` | Mentor, pending approval |
 | `organizer@example.com` | Organizer |
 
 The Google button appears only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. The redirect URI is `http://localhost:3000/api/auth/callback/google`.
@@ -68,9 +70,10 @@ The Google button appears only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET
 
 ```
 prisma/              schema, migrations, seed
-src/app/             routes (sign-in, role homes, auth API)
-src/components/      shared UI
+src/app/             routes: landing, sign-in, (app)/onboarding, student, mentor, organizer
+src/components/      shared UI (ui/ = shadcn components, forms/ = form fields and hooks)
 src/lib/             auth, data access layer, roles, db, email
+src/server/          business logic: validation, permissions, requests, mentoring, profiles
 src/proxy.ts         optimistic auth redirect
 tests/               integration tests and test helpers
 ```

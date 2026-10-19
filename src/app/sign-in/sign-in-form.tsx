@@ -1,7 +1,13 @@
 "use client";
 
+import { Loader2, Mail, MailCheck } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { authClient } from "@/lib/auth-client";
 
 /** Messages for the ?error= codes Better Auth redirects back with. */
@@ -43,58 +49,75 @@ export function SignInForm({ googleEnabled }: { googleEnabled: boolean }) {
 
   if (status.kind === "sent") {
     return (
-      <p className="rounded-md border border-foreground/15 p-4 text-sm">
-        Check <strong>{status.email}</strong> for a sign-in link. It expires in 15 minutes.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-2 text-center">
+        <span className="flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+          <MailCheck className="size-6" />
+        </span>
+        <p className="font-semibold">Check your email</p>
+        <p className="text-sm text-muted-foreground">
+          We sent a sign-in link to <strong className="text-foreground">{status.email}</strong>. It expires in 15
+          minutes.
+        </p>
+        <Button variant="link" size="sm" onClick={() => setStatus({ kind: "idle" })}>
+          Use a different email
+        </Button>
+      </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       {urlError && status.kind === "idle" && (
-        <p role="alert" className="rounded-md border border-red-500/30 bg-red-500/10 p-3 text-sm">
-          {urlError}
-        </p>
+        <Alert variant="destructive">
+          <AlertDescription>{urlError}</AlertDescription>
+        </Alert>
       )}
       {googleEnabled && (
         <>
-          <button
-            type="button"
-            onClick={signInWithGoogle}
-            className="h-11 rounded-md bg-foreground font-medium text-background hover:opacity-90"
-          >
+          <Button type="button" variant="outline" size="lg" onClick={signInWithGoogle} className="w-full">
+            <GoogleIcon />
             Continue with Google
-          </button>
-          <div className="flex items-center gap-3 text-xs text-foreground/50">
-            <span className="h-px flex-1 bg-foreground/15" />
-            or
-            <span className="h-px flex-1 bg-foreground/15" />
+          </Button>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <Separator className="flex-1" />
+            or use your email
+            <Separator className="flex-1" />
           </div>
         </>
       )}
-      <form onSubmit={sendMagicLink} className="flex flex-col gap-2">
-        <label htmlFor="email" className="text-sm font-medium">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="h-11 rounded-md border border-foreground/20 bg-transparent px-3"
-          placeholder="you@example.com"
-        />
-        <button
-          type="submit"
-          disabled={status.kind === "sending"}
-          className="h-11 rounded-md border border-foreground/20 font-medium hover:bg-foreground/5 disabled:opacity-50"
-        >
+      <form onSubmit={sendMagicLink} className="flex flex-col gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="font-semibold">
+            Email
+          </Label>
+          <Input
+            id="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            className="h-11"
+          />
+        </div>
+        <Button type="submit" size="lg" disabled={status.kind === "sending"} className="w-full">
+          {status.kind === "sending" ? <Loader2 className="animate-spin" /> : <Mail />}
           {status.kind === "sending" ? "Sending…" : "Email me a sign-in link"}
-        </button>
-        {status.kind === "error" && <p className="text-sm text-red-600">{status.message}</p>}
+        </Button>
+        {status.kind === "error" && <p className="text-sm text-destructive">{status.message}</p>}
       </form>
     </div>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5">
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z" />
+      <path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z" />
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15A10.6 10.6 0 0 0 12 1 11 11 0 0 0 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z" />
+    </svg>
   );
 }

@@ -38,3 +38,8 @@ export function homeFor(role: Role): string {
       return "/organizer";
   }
 }
+
+/** Students and mentors pick their path and fill in a profile first; staff roles skip onboarding. */
+export function needsOnboarding(user: { role: Role; onboarded: boolean }): boolean {
+  return !user.onboarded && (user.role === "student" || user.role === "mentor");
+}

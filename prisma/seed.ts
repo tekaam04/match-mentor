@@ -11,11 +11,12 @@ const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.
 // magic-link form; the link is printed in the dev server terminal.
 const SEED_DEMO = process.env.NODE_ENV !== "production" && process.env.SEED_DEMO !== "false";
 
-async function upsertUser(email: string, name: string, role: Role) {
+async function upsertUser(email: string, name: string, role: Role, onboarded = true) {
+  const onboardedAt = onboarded ? new Date() : null;
   return db.user.upsert({
     where: { email },
-    update: { role },
-    create: { id: randomUUID(), email, name, role, emailVerified: true },
+    update: { role, onboardedAt },
+    create: { id: randomUUID(), email, name, role, emailVerified: true, onboardedAt },
   });
 }
 
@@ -49,14 +50,17 @@ async function seedDemo(topics: { id: string; slug: string }[]) {
     { email: "mentor1@example.com", name: "Meron Mentor", university: "MIT", topics: ["essays", "sat", "interviews"] },
     { email: "mentor2@example.com", name: "Dawit Mentor", university: "Stanford", topics: ["financial-aid", "visa-travel"] },
     { email: "mentor3@example.com", name: "Hana Mentor", university: "University of Toronto", topics: ["universities-outside-us", "english-tests", "gap-year"] },
+    { email: "mentor4@example.com", name: "Kidus Applicant-Mentor", university: "Yale", topics: ["essays", "recommendation-letters"], status: "pending" as const },
   ];
   for (const m of mentors) {
     const user = await upsertUser(m.email, m.name, "mentor");
     const connect = m.topics.map((s) => ({ id: topic(s).id }));
+    const status = m.status ?? "approved";
+    const bio = `Current student at ${m.university}. I went through the same application process and I'm happy to help.`;
     await db.mentorProfile.upsert({
       where: { userId: user.id },
-      update: { university: m.university, topics: { set: connect } },
-      create: { userId: user.id, university: m.university, capacity: 3, topics: { connect } },
+      update: { university: m.university, bio, status, topics: { set: connect } },
+      create: { userId: user.id, university: m.university, bio, capacity: 3, status, topics: { connect } },
     });
   }
 
@@ -92,7 +96,9 @@ async function seedDemo(topics: { id: string; slug: string }[]) {
       deadline: new Date("2026-11-01"),
       urgency: "high",
       format: "call",
-      interests: { create: { mentorId: mentor1.id, note: "Happy to help — I wrote about something similar." } },
+      responses: {
+        create: { mentorId: mentor1.id, kind: "interested", note: "Happy to help — I wrote about something similar." },
+      },
     },
   });
   await db.mentorshipRequest.create({
@@ -103,6 +109,41 @@ async function seedDemo(topics: { id: string; slug: string }[]) {
       description: "When should I start the study permit application if I get an offer in March?",
       targetUniversities: ["University of Toronto"],
       urgency: "normal",
+      format: "chat",
+    },
+  });
+  await db.mentorshipRequest.create({
+    data: {
+      studentId: selam.id,
+      topicId: topic("sat").id,
+      title: "SAT study plan with 8 weeks left",
+      description: "My practice scores are around 1350. I want a weekly plan to get to 1500 before the December test.",
+      targetUniversities: ["MIT"],
+      deadline: new Date("2026-12-05"),
+      urgency: "normal",
+      format: "chat",
+    },
+  });
+  await db.mentorshipRequest.create({
+    data: {
+      studentId: liya.id,
+      topicId: topic("interviews").id,
+      title: "Mock interview for a scholarship",
+      description: "I have an interview for a full scholarship next week and would love to practise common questions.",
+      targetUniversities: ["Yale"],
+      deadline: new Date("2026-10-30"),
+      urgency: "high",
+      format: "call",
+    },
+  });
+  await db.mentorshipRequest.create({
+    data: {
+      studentId: yonas.id,
+      topicId: topic("english-tests").id,
+      title: "IELTS vs Duolingo English Test",
+      description: "Which test is accepted more widely in Canada, and how long should I prepare for each?",
+      targetUniversities: ["University of Toronto", "McGill"],
+      urgency: "low",
       format: "chat",
     },
   });

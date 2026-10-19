@@ -81,7 +81,8 @@ A web app for an existing 345+ member student/mentor community. Students request
 - Add a GitHub Actions CI workflow (lint, typecheck, test, build) and get it passing.
 - **End of day:** I can sign in as each role and land on a role-specific placeholder page, and CI is green.
 
-### Day 2: Student and mentor flows
+### Day 2: Student and mentor flows ✅ (2026-10-19)
+- Also done: design system (shadcn/ui, brand palette, light/dark), landing page, sign-in redesign, onboarding with mentor approval (option A), organizer mentor-approval page.
 - Student: profile, a create/edit/cancel request form, and a "My requests" list with status.
 - Mentor: profile with topics and capacity, an open-requests feed filtered by topic, and express-interest/pass actions.
 - API routes with zod validation, and API tests for each route, including permission-denied cases.
