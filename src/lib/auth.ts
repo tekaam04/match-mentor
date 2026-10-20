@@ -6,6 +6,7 @@ import { isAdminEmail } from "@/lib/admin-emails";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { ROLES } from "@/lib/roles";
+import { findPendingInvite, markInviteUsed } from "@/server/people";
 
 export const googleEnabled = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
@@ -47,9 +48,15 @@ export const auth = betterAuth({
   databaseHooks: {
     user: {
       create: {
-        before: async (user) => ({
-          data: { ...user, role: isAdminEmail(user.email) ? "admin" : (user.role ?? "student") },
-        }),
+        // New accounts get their role from SEED_ADMIN_EMAILS, then from a pending invite, else "student".
+        before: async (user) => {
+          if (isAdminEmail(user.email)) return { data: { ...user, role: "admin" } };
+          const invite = await findPendingInvite(user.email);
+          return { data: { ...user, role: invite?.role ?? user.role ?? "student" } };
+        },
+        after: async (user) => {
+          await markInviteUsed(user.email);
+        },
       },
     },
   },

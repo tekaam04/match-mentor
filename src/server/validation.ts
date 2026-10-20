@@ -122,3 +122,13 @@ export const feedbackSchema = z.object({
   comment: optionalText(1000),
 });
 export type FeedbackInput = z.input<typeof feedbackSchema>;
+
+export const inviteSchema = z.object({
+  email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid email address.")),
+  role: z.enum(["student", "mentor", "organizer", "admin"], { message: "Choose a role." }),
+});
+export type InviteInput = z.input<typeof inviteSchema>;
+
+export const roleChangeSchema = z.object({
+  role: z.enum(["student", "mentor", "organizer", "admin"], { message: "Choose a role." }),
+});

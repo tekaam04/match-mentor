@@ -23,5 +23,5 @@ async function Onboarding() {
   const user = await requireUser();
   if (!needsOnboarding(user)) redirect(landingFor(user));
   const topics = await listActiveTopics();
-  return <OnboardingForm topics={topics} name={user.name} />;
+  return <OnboardingForm topics={topics} name={user.name} invitedAsMentor={user.role === "mentor"} />;
 }

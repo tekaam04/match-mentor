@@ -9,7 +9,8 @@ const db = new PrismaClient({ adapter: new PrismaPg({ connectionString: process.
 
 // Demo accounts are only created outside production. Sign in as any of them locally with the
 // magic-link form; the link is printed in the dev server terminal.
-const SEED_DEMO = process.env.NODE_ENV !== "production" && process.env.SEED_DEMO !== "false";
+const SEED_DEMO =
+  process.env.NODE_ENV !== "production" && process.env.VERCEL_ENV !== "production" && process.env.SEED_DEMO !== "false";
 
 async function upsertUser(email: string, name: string, role: Role, onboarded = true) {
   const onboardedAt = onboarded ? new Date() : null;

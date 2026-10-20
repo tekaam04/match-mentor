@@ -96,7 +96,8 @@ A web app for an existing 345+ member student/mentor community. Students request
 - Match detail page for students and mentors, mark-complete, and the feedback form.
 - **End of day:** the full loop works end to end (request → interest → match → complete → feedback).
 
-### Day 4: Metrics, polish, deploy
+### Day 4: Metrics, polish, deploy ✅ code (2026-10-20). Going live follows DEPLOY.md
+- Built: pilot dashboard (completion rate, time to match/complete, rating, mentor capacity, quiet matches, long waits), invites (invited mentors skip approval), People page with admin role changes, error and not-found pages, security headers, production build that migrates and seeds. Playwright smoke test skipped in favour of integration tests through the real auth endpoints.
 - Organizer dashboard with the metrics above and the stale-match flag.
 - Invite flow so organizers can onboard pilot users by email.
 - Empty states, loading and error states, mobile layout check.

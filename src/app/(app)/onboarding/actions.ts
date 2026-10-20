@@ -11,7 +11,10 @@ export async function completeOnboardingAction(formData: FormData) {
     () => completeOnboarding(user, formInput(formData) as unknown as OnboardingInput),
     (updated) => ({
       ok: true,
-      message: updated.role === "mentor" ? "Thanks! An organizer will review your mentor profile." : "You're all set!",
+      message:
+        updated.role === "mentor" && user.role !== "mentor"
+          ? "Thanks! An organizer will review your mentor profile."
+          : "You're all set!",
       redirectTo: landingFor({ ...user, role: updated.role, onboarded: true }),
     }),
   );

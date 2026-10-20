@@ -26,7 +26,7 @@ export async function listQueue(actor: Actor, tab: QueueTab = "open") {
     include: {
       topic: { select: { label: true } },
       student: { select: { name: true } },
-      match: { select: { id: true, status: true, mentor: { select: { name: true } } } },
+      match: { select: { id: true, status: true, matchedAt: true, mentor: { select: { name: true } } } },
       _count: { select: { responses: { where: { kind: "interested" } } } },
     },
     // Oldest open requests first so nobody waits too long; newest first elsewhere.

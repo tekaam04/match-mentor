@@ -8,6 +8,7 @@ import { TabsNav } from "@/components/tabs-nav";
 import { requireRole } from "@/lib/dal";
 import { cn } from "@/lib/utils";
 import { listQueue, queueCounts, type QueueTab } from "@/server/matching";
+import { staleCutoff } from "@/server/metrics";
 
 export const metadata: Metadata = { title: "Requests" };
 
@@ -83,6 +84,11 @@ async function Queue({ searchParams }: { searchParams: Promise<Record<string, st
                         </span>
                       )}
                       {r.match && r.match.status === "active" && <span>Mentor: {r.match.mentor.name}</span>}
+                      {r.match?.status === "active" && r.match.matchedAt < staleCutoff() && (
+                        <span className="font-medium text-highlight-foreground dark:text-warning">
+                          Quiet for {waitingDays(r.match.matchedAt)} days
+                        </span>
+                      )}
                     </div>
                   </div>
                   {tab === "open" && (

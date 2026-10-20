@@ -27,6 +27,7 @@ async function navFor(user: CurrentUser): Promise<NavItem[]> {
         { href: "/organizer", label: "Overview" },
         { href: "/organizer/requests", label: "Requests", badge: await openRequestCount() },
         { href: "/organizer/mentors", label: "Mentors", badge: await pendingMentorCount() },
+        { href: "/organizer/people", label: "People" },
       ];
   }
 }

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { assertRole, type Actor } from "./actor";
 import { conflict, forbidden, parse } from "./errors";
+import { wasInvitedAsMentor } from "./people";
 import { assertActiveTopics } from "./topics";
 import {
   mentorProfileSchema,
@@ -53,12 +54,14 @@ export async function completeOnboarding(actor: Actor, raw: OnboardingInput) {
         },
       });
     } else {
+      // Invited mentors were vetted by the organizer who invited them.
+      const status = (await wasInvitedAsMentor(user.email)) ? ("approved" as const) : ("pending" as const);
       const data = {
         university: input.university,
         bio: input.bio,
         availability: input.availability,
         capacity: input.capacity,
-        status: "pending" as const,
+        status,
       };
       await tx.mentorProfile.upsert({
         where: { userId: actor.id },

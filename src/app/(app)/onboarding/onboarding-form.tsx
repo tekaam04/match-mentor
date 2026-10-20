@@ -27,9 +27,17 @@ const PATHS: { value: Path; title: string; description: string; icon: React.Reac
   },
 ];
 
-export function OnboardingForm({ topics, name }: { topics: TopicOption[]; name: string }) {
+export function OnboardingForm({
+  topics,
+  name,
+  invitedAsMentor,
+}: {
+  topics: TopicOption[];
+  name: string;
+  invitedAsMentor: boolean;
+}) {
   const firstName = name.split(" ")[0] ?? "";
-  const [path, setPath] = useState<Path | null>(null);
+  const [path, setPath] = useState<Path | null>(invitedAsMentor ? "mentor" : null);
   const { onSubmit, pending, formError, fieldError } = useFormAction(completeOnboardingAction);
 
   if (!path) {
@@ -72,7 +80,9 @@ export function OnboardingForm({ topics, name }: { topics: TopicOption[]; name: 
         </h1>
         <p className="text-muted-foreground">
           {isMentor
-            ? "Organizers use this to approve you, and students see it when you offer to help."
+            ? invitedAsMentor
+              ? "You were invited as a mentor, so you’re pre-approved. Students see this when you offer to help."
+              : "Organizers use this to approve you, and students see it when you offer to help."
             : "This helps us find the right mentor. You can change it any time."}
         </p>
       </div>
@@ -99,7 +109,7 @@ export function OnboardingForm({ topics, name }: { topics: TopicOption[]; name: 
             )}
             <div className={cn("flex justify-end border-t pt-6")}>
               <SubmitButton pending={pending} size="lg">
-                {isMentor ? "Submit for approval" : "Continue"}
+                {isMentor ? (invitedAsMentor ? "Start mentoring" : "Submit for approval") : "Continue"}
               </SubmitButton>
             </div>
           </form>

@@ -120,3 +120,21 @@ export function notifyMentorReviewed(mentor: Person, decision: "approved" | "rej
         }),
   ]);
 }
+
+const ROLE_PHRASE = { student: "a student", mentor: "a mentor", organizer: "an organizer", admin: "an admin" } as const;
+
+export function notifyInvited(email: string, role: keyof typeof ROLE_PHRASE, inviterName: string) {
+  return deliver([
+    compose({
+      to: { name: "", email },
+      subject: `${inviterName} invited you to Match Mentor`,
+      paragraphs: [
+        `${inviterName} invited you to join Match Mentor as ${ROLE_PHRASE[role]}.`,
+        role === "mentor"
+          ? "You're pre-approved: sign in with this email address, fill in your mentor profile, and you can start helping students right away."
+          : "Sign in with this email address to get started. The invitation is valid for 14 days.",
+      ],
+      cta: { label: "Accept invitation", path: "/sign-in" },
+    }),
+  ]);
+}

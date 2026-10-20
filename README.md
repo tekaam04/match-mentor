@@ -2,7 +2,7 @@
 
 A mentorship matching app for a 345+ member university-applications community. Students request help (SAT, essays, recommendation letters, financial aid, visas and more), mentors respond, and organizers make and track matches.
 
-See [PLAN.md](PLAN.md) for the 5-day build plan, data model and metrics.
+See [PLAN.md](PLAN.md) for the 5-day build plan and [DEPLOY.md](DEPLOY.md) for going live.
 
 ## Stack
 
@@ -35,6 +35,16 @@ Authorization works in three layers:
 2. Organizers open **Requests**, pick a request and see mentors ranked by: offered to help → knows the topic → most free spots (`src/lib/match-score.ts`). Mentors at capacity, unapproved mentors and mentors who passed can't be matched.
 3. Confirming a match emails both people each other's contact details. Organizers can move a match to another mentor or end it, either reopening the request or closing it. Every change is logged in `match_event`.
 4. Either side marks the match complete, and the student is asked for a 1–5 rating.
+
+## Pilot metrics
+
+The organizer overview (`src/server/metrics.ts`) tracks:
+
+- **Match completion rate**: completed ÷ (completed + ended + quiet). A match is *quiet* when it's been active for 14+ days without being completed.
+- **Time to match** and **time to complete** (medians).
+- **Student rating**: average of 1–5 feedback.
+- **Mentor capacity in use**: active matches ÷ total capacity of approved mentors.
+- Lists of quiet matches and requests waiting 3+ days.
 
 ## Local setup
 
@@ -72,6 +82,7 @@ The Google button appears only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET
 | `npm run db:migrate` | Create/apply a migration after editing `prisma/schema.prisma` |
 | `npm run db:seed` | Re-run the seed (idempotent) |
 | `npm run db:reset` | Drop, re-migrate and re-seed the dev database |
+| `npm run vercel-build` | What Vercel runs: migrate, seed (no demo data in production), build |
 
 ## Project layout
 
