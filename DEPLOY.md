@@ -42,6 +42,7 @@ In **Branding**, add the domain under *Authorized domains*. In **Audience**, cli
 1. Sign up at [resend.com](https://resend.com). **Domains → Add Domain** → `s2stigraymentors.com`.
 2. Resend lists DNS records (SPF `TXT`, DKIM `TXT`/`CNAME`, and an `MX` for bounces). Add each one in Cloudflare DNS exactly as shown. Resend can also do this automatically through its Cloudflare integration.
 3. Wait for the domain to show **Verified**, then **API Keys → Create** (permission: *Sending access*), and put it in `RESEND_API_KEY` on Vercel. Redeploy.
+   Use **Manual setup** in Resend (not Auto configure). The records are a `resend._domainkey` TXT (DKIM), `send` and `rsend` CNAMEs pointing at `*.forge.rmta.net` (proxy off), and a `_dmarc` TXT `v=DMARC1; p=none;`.
 
 ## 7. Smoke test
 1. Open `https://www.s2stigraymentors.com` → **Sign in with Google** as `tekaabel04@gmail.com` → you should land on the Organizer overview.
