@@ -2,6 +2,7 @@ import { ArrowRight, HeartHandshake, MessagesSquare, Send, Sparkles, UserCheck }
 import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand";
+import { LegalFooter } from "@/components/legal-page";
 import { RedirectIfSignedIn } from "@/components/redirect-if-signed-in";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_TOPICS } from "@/lib/topics";
@@ -138,12 +139,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6">
-          <Logo className="text-base" />
-          <p>Made by and for our community of applicants and mentors.</p>
-        </div>
-      </footer>
+      <LegalFooter />
     </div>
   );
 }

@@ -18,8 +18,8 @@ In **Settings → Environment Variables** (Production):
 | Name | Value |
 |---|---|
 | `BETTER_AUTH_SECRET` | a new random secret: run `openssl rand -base64 32` locally. Don't reuse the local one. |
-| `BETTER_AUTH_URL` | `https://s2stigraymentors.com` |
-| `SEED_ADMIN_EMAILS` | `tekaabel04@gmail.com,tekaabel0411@gmail.com` |
+| `BETTER_AUTH_URL` | `https://www.s2stigraymentors.com` (the root domain redirects to www) |
+| `SEED_ADMIN_EMAILS` | `tekaabel04@gmail.com` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | same as your local `.env` (after step 5) |
 | `RESEND_API_KEY` | from step 6 |
 | `EMAIL_FROM` | `Match Mentor <hello@s2stigraymentors.com>` |
@@ -33,8 +33,8 @@ Then **Deployments → ⋯ → Redeploy**.
 
 ## 5. Google sign-in for production
 In [console.cloud.google.com](https://console.cloud.google.com) → *Google Auth Platform* → **Clients** → your web client:
-- Authorized JavaScript origins: add `https://s2stigraymentors.com`
-- Authorized redirect URIs: add `https://s2stigraymentors.com/api/auth/callback/google`
+- Authorized JavaScript origins: add `https://www.s2stigraymentors.com`
+- Authorized redirect URIs: add `https://www.s2stigraymentors.com/api/auth/callback/google`
 
 In **Branding**, add the domain under *Authorized domains*. In **Audience**, click **Publish app** so anyone (not only test users) can sign in. The app only asks for name and email, so Google doesn't require a review.
 
@@ -44,7 +44,7 @@ In **Branding**, add the domain under *Authorized domains*. In **Audience**, cli
 3. Wait for the domain to show **Verified**, then **API Keys → Create** (permission: *Sending access*), and put it in `RESEND_API_KEY` on Vercel. Redeploy.
 
 ## 7. Smoke test
-1. Open `https://s2stigraymentors.com` → **Sign in with Google** as `tekaabel04@gmail.com` → you should land on the Organizer overview.
+1. Open `https://www.s2stigraymentors.com` → **Sign in with Google** as `tekaabel04@gmail.com` → you should land on the Organizer overview.
 2. In a private window, sign in with the email-link option using another address you own → the email should arrive within a minute → finish onboarding as a student → post a request.
 3. Back as admin: **People → Invite** a mentor you know, approve or match, and check that both emails arrive.
 

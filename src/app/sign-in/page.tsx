@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Logo } from "@/components/brand";
 import { RedirectIfSignedIn } from "@/components/redirect-if-signed-in";
@@ -35,7 +36,15 @@ export default function SignInPage() {
           </CardContent>
         </Card>
         <p className="text-center text-xs text-muted-foreground">
-          By continuing you agree to treat everyone in the community with respect.
+          By continuing you agree to our{" "}
+          <Link href="/terms" className="underline underline-offset-4 hover:text-foreground">
+            terms
+          </Link>{" "}
+          and{" "}
+          <Link href="/privacy" className="underline underline-offset-4 hover:text-foreground">
+            privacy policy
+          </Link>
+          .
         </p>
       </div>
     </div>
