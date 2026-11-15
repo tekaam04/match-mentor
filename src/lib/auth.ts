@@ -66,9 +66,9 @@ export const auth = betterAuth({
       sendMagicLink: async ({ email, url }) => {
         await sendEmail({
           to: email,
-          subject: "Your Match Mentor sign-in link",
-          text: `Sign in to Match Mentor:\n${url}\n\nThis link expires in 15 minutes. If you didn't request it, ignore this email.`,
-          html: `<p>Sign in to Match Mentor:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 15 minutes. If you didn't request it, ignore this email.</p>`,
+          subject: "Your S2S Tigray Mentors sign-in link",
+          text: `Sign in to S2S Tigray Mentors:\n${url}\n\nThis link expires in 15 minutes. If you didn't request it, ignore this email.`,
+          html: `<p>Sign in to S2S Tigray Mentors:</p><p><a href="${url}">Sign in</a></p><p>This link expires in 15 minutes. If you didn't request it, ignore this email.</p>`,
         });
       },
     }),

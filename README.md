@@ -1,4 +1,4 @@
-# Match Mentor
+# S2S Tigray Mentors
 
 A mentorship matching app for a 345+ member university-applications community. Students request help (SAT, essays, recommendation letters, financial aid, visas and more), mentors respond, and organizers make and track matches.
 

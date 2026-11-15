@@ -24,7 +24,7 @@ export function Logo({ href = "/", className }: { href?: string; className?: str
     <Link href={href} className={cn("inline-flex items-center gap-2 font-heading text-lg font-bold tracking-tight", className)}>
       <LogoMark />
       <span>
-        Match<span className="text-primary">Mentor</span>
+        S2S Tigray <span className="text-primary">Mentors</span>
       </span>
     </Link>
   );

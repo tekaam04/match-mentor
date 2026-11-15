@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: { default: "Match Mentor", template: "%s · Match Mentor" },
+  title: { default: "S2S Tigray Mentors", template: "%s · S2S Tigray Mentors" },
   description: "One-on-one help with university applications from students who have been through it.",
 };
 

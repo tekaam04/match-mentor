@@ -1,4 +1,4 @@
-# Match Mentor — 5-Day Build Plan
+# S2S Tigray Mentors — 5-Day Build Plan
 
 A web app for an existing 345+ member student/mentor community. Students request help, mentors respond, and organizers make and track matches. The build ends with a pilot of about 30 real users.
 

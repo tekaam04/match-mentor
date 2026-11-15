@@ -45,7 +45,7 @@ export function OnboardingForm({
       <div className="space-y-6">
         <div className="space-y-1 text-center">
           <h1 className="font-heading text-3xl font-bold tracking-tight">Welcome{firstName ? `, ${firstName}` : ""}!</h1>
-          <p className="text-muted-foreground">How will you use Match Mentor?</p>
+          <p className="text-muted-foreground">How will you use S2S Tigray Mentors?</p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {PATHS.map((p) => (

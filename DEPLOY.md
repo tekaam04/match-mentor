@@ -1,4 +1,4 @@
-# Deploying Match Mentor
+# Deploying S2S Tigray Mentors
 
 Production runs on **Vercel** (app), **Neon** (Postgres, added through Vercel), **Resend** (email) and the domain **s2stigraymentors.com** (DNS on Cloudflare). All have free tiers that cover the pilot. Do the steps in order; each takes a few minutes.
 
@@ -22,7 +22,7 @@ In **Settings → Environment Variables** (Production):
 | `SEED_ADMIN_EMAILS` | `tekaabel04@gmail.com` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | same as your local `.env` (after step 5) |
 | `RESEND_API_KEY` | from step 6 |
-| `EMAIL_FROM` | `Match Mentor <hello@s2stigraymentors.com>` |
+| `EMAIL_FROM` | `S2S Tigray Mentors <hello@s2stigraymentors.com>` |
 
 Then **Deployments → ⋯ → Redeploy**.
 

@@ -14,12 +14,12 @@ const firstName = (p: Person) => p.name.trim().split(/\s+/)[0] || "there";
 function compose(opts: { to: Person; subject: string; paragraphs: string[]; cta: { label: string; path: string } }) {
   const url = `${appUrl()}${opts.cta.path}`;
   const greeting = `Hi ${firstName(opts.to)},`;
-  const text = [greeting, ...opts.paragraphs, `${opts.cta.label}: ${url}`, "— Match Mentor"].join("\n\n");
+  const text = [greeting, ...opts.paragraphs, `${opts.cta.label}: ${url}`, "— S2S Tigray Mentors"].join("\n\n");
   const html = `<div style="font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:520px;color:#1e1b3a;line-height:1.5">
 <p>${escapeHtml(greeting)}</p>
 ${opts.paragraphs.map((p) => `<p>${escapeHtml(p)}</p>`).join("\n")}
 <p><a href="${url}" style="display:inline-block;background:#4f46e5;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-weight:600">${escapeHtml(opts.cta.label)}</a></p>
-<p style="color:#6b6880;font-size:13px">— Match Mentor</p>
+<p style="color:#6b6880;font-size:13px">— S2S Tigray Mentors</p>
 </div>`;
   return { to: opts.to.email, subject: opts.subject, text, html };
 }
@@ -37,7 +37,7 @@ export function notifyMatched({ matchId, requestTitle, student, mentor }: MatchI
   return deliver([
     compose({
       to: student,
-      subject: `You're matched with ${mentor.name} on Match Mentor`,
+      subject: `You're matched with ${mentor.name} on S2S Tigray Mentors`,
       paragraphs: [
         `Good news: ${mentor.name} will help you with "${requestTitle}".`,
         `You can reach them at ${mentor.email}. They'll also reach out to you to plan a first conversation.`,
@@ -105,13 +105,13 @@ export function notifyMentorReviewed(mentor: Person, decision: "approved" | "rej
     decision === "approved"
       ? compose({
           to: mentor,
-          subject: "You're approved as a Match Mentor mentor",
+          subject: "You're approved as a mentor on S2S Tigray Mentors",
           paragraphs: ["Welcome aboard! You can now see open requests and offer to help students."],
           cta: { label: "See open requests", path: "/mentor" },
         })
       : compose({
           to: mentor,
-          subject: "About your Match Mentor mentor application",
+          subject: "About your mentor application",
           paragraphs: [
             "Thanks for offering to mentor. An organizer wasn't able to approve your profile right now.",
             "If you think this is a mistake, reply in the community group and an organizer will help.",
@@ -127,9 +127,9 @@ export function notifyInvited(email: string, role: keyof typeof ROLE_PHRASE, inv
   return deliver([
     compose({
       to: { name: "", email },
-      subject: `${inviterName} invited you to Match Mentor`,
+      subject: `${inviterName} invited you to S2S Tigray Mentors`,
       paragraphs: [
-        `${inviterName} invited you to join Match Mentor as ${ROLE_PHRASE[role]}.`,
+        `${inviterName} invited you to join S2S Tigray Mentors as ${ROLE_PHRASE[role]}.`,
         role === "mentor"
           ? "You're pre-approved: sign in with this email address, fill in your mentor profile, and you can start helping students right away."
           : "Sign in with this email address to get started. The invitation is valid for 14 days.",
