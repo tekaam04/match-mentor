@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import fixture from "../../tests/fixtures/match-score-cases.json";
 import { rankCandidates, scoreCandidate } from "./match-score";
 
 const base = { interested: false, topicMatch: false, activeMatches: 0, capacity: 3 };
@@ -34,5 +35,18 @@ describe("rankCandidates", () => {
       { ...base, mentorId: "open", topicMatch: true },
     ]);
     expect(ranked.map((c) => c.mentorId)).toEqual(["open", "busy"]);
+  });
+});
+
+// The same cases run against the Python service in tests/python/test_scoring.py.
+describe("shared scoring fixture (parity with the Python service)", () => {
+  it.each(fixture.cases.map((c) => [c.name, c] as const))("%s", (_name, c) => {
+    const ranked = rankCandidates(c.candidates).map(({ mentorId, score, remaining, reasons }) => ({
+      mentorId,
+      score,
+      remaining,
+      reasons,
+    }));
+    expect(ranked).toEqual(c.expected);
   });
 });

@@ -10,6 +10,28 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  python:
+    name: Python analytics service
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install
+        run: pip install -r requirements-dev.txt
+
+      - name: Lint
+        run: ruff check . && ruff format --check .
+
+      - name: Test
+        run: pytest
+
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -52,8 +74,26 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      # Start the real Python service so the TypeScript tests exercise the HTTP contract between the two.
+      # Its secret must match BETTER_AUTH_SECRET in vitest.config.mts, which the tests sign requests with.
+      - name: Start analytics service
+        run: |
+          pip install -r requirements-dev.txt
+          BETTER_AUTH_SECRET=test-secret-not-for-production-use-0123456789 \
+            nohup uvicorn s2s_analytics.app:app --port 8000 > uvicorn.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 1; done
+          cat uvicorn.log; exit 1
+
       - name: Test
         run: npm test
+        env:
+          ANALYTICS_URL: http://127.0.0.1:8000
 
       - name: Build
         run: npm run build

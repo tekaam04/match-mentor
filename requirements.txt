@@ -1,0 +1,2 @@
+# Runtime dependencies for the Python analytics service (api/analytics/*.py on Vercel).
+fastapi==0.163.2

@@ -1,7 +1,7 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { hasRole } from "@/lib/roles";
-import { rankCandidates } from "@/lib/match-score";
+import { rankMentors } from "./analytics";
 import { assertRole, type Actor } from "./actor";
 import { conflict, forbidden, notFound, parse } from "./errors";
 import { notifyCompleted, notifyMatched, notifyReassigned } from "./notifications";
@@ -98,7 +98,7 @@ export async function suggestMentors(actor: Actor, requestId: string) {
   });
 
   const currentMentorId = request.match?.status === "active" ? request.match.mentorId : null;
-  return rankCandidates(
+  return rankMentors(
     mentors
       .filter((m) => m.userId !== currentMentorId)
       .map((m) => ({

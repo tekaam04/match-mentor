@@ -1,12 +1,26 @@
-import { AlertTriangle, ArrowRight, Clock, GraduationCap, HeartHandshake, Inbox, Link2, UserCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  Clock,
+  Download,
+  GraduationCap,
+  HeartHandshake,
+  Inbox,
+  Link2,
+  UserCheck,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PageHeader, PageSkeleton } from "@/components/page";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { CurrentUser } from "@/lib/dal";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireRole } from "@/lib/dal";
 import { daysBetween, formatDuration, formatPercent } from "@/lib/stats";
 import { cn } from "@/lib/utils";
+import { analyticsEnabled, getTopicBreakdown } from "@/server/analytics";
 import { getAttentionItems, getDashboardMetrics, STALE_AFTER_DAYS } from "@/server/metrics";
 
 export const metadata: Metadata = { title: "Overview" };
@@ -70,7 +84,20 @@ async function OrganizerHomeContent() {
 
   return (
     <>
-      <PageHeader title={`Welcome back, ${user.name.split(" ")[0]}`} description="How the pilot is going." />
+      <PageHeader
+        title={`Welcome back, ${user.name.split(" ")[0]}`}
+        description="How the pilot is going."
+        actions={
+          analyticsEnabled() && (
+            <Button asChild variant="outline">
+              <a href="/organizer/export" download>
+                <Download />
+                Export CSV
+              </a>
+            </Button>
+          )
+        }
+      />
 
       {m.pendingMentors > 0 && (
         <Link
@@ -158,6 +185,12 @@ async function OrganizerHomeContent() {
         </Card>
       </section>
 
+      {analyticsEnabled() && (
+        <Suspense fallback={<Skeleton className="mb-8 h-48 w-full rounded-xl" />}>
+          <TopicBreakdownCard user={user} now={now} />
+        </Suspense>
+      )}
+
       <section aria-labelledby="attention" className="grid gap-6 lg:grid-cols-2">
         <h2 id="attention" className="sr-only">
           Needs attention
@@ -186,6 +219,68 @@ async function OrganizerHomeContent() {
         />
       </section>
     </>
+  );
+}
+
+/** Per-topic results from the Python analytics service. Hidden if the service doesn't answer. */
+async function TopicBreakdownCard({ user, now }: { user: CurrentUser; now: Date }) {
+  const breakdown = await getTopicBreakdown(user, now);
+  if (!breakdown || breakdown.byTopic.length === 0) return null;
+
+  return (
+    <section aria-labelledby="by-topic" className="mb-8">
+      <h2 id="by-topic" className="mb-3 text-sm font-semibold tracking-wide text-muted-foreground uppercase">
+        By topic
+      </h2>
+      <Card className="py-0">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b text-left text-xs text-muted-foreground">
+              <tr>
+                <th scope="col" className="px-4 py-3 font-medium">
+                  Topic
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">
+                  Requests
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">
+                  Waiting
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">
+                  Active
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">
+                  Completed
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium">
+                  Completion
+                </th>
+                <th scope="col" className="px-4 py-3 text-right font-medium whitespace-nowrap">
+                  Time to match
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y tabular-nums">
+              {breakdown.byTopic.map((t) => (
+                <tr key={t.topic}>
+                  <th scope="row" className="px-4 py-3 text-left font-medium">
+                    {t.topic}
+                  </th>
+                  <td className="px-4 py-3 text-right">{t.requests}</td>
+                  <td className={cn("px-4 py-3 text-right", t.waiting > 0 && "font-semibold")}>{t.waiting}</td>
+                  <td className="px-4 py-3 text-right">{t.active + t.stale}</td>
+                  <td className="px-4 py-3 text-right">{t.completed}</td>
+                  <td className="px-4 py-3 text-right">{formatPercent(t.completionRate)}</td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    {formatDuration(t.medianHoursToMatch === null ? null : t.medianHoursToMatch / 24)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </section>
   );
 }
 

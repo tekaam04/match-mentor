@@ -45,3 +45,9 @@ next-env.d.ts
 
 # prisma generated client
 /src/generated/
+
+# python analytics service
+/.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/

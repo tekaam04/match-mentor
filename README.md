@@ -9,7 +9,8 @@ See [PLAN.md](PLAN.md) for the 5-day build plan and [DEPLOY.md](DEPLOY.md) for g
 - **Next.js 16** (App Router, TypeScript, Tailwind CSS 4, shadcn/ui)
 - **PostgreSQL** + **Prisma 7**
 - **Better Auth**: Google sign-in and email magic links, with a role on each user
-- **Vitest**: unit tests and integration tests against a real Postgres database
+- **Python 3.12 + FastAPI**: analytics service for mentor scoring and pilot-metrics export (see below)
+- **Vitest** and **pytest**: unit tests, plus integration tests against a real Postgres database and the live Python service
 - **GitHub Actions**: lint, typecheck, test and build on every push and PR
 
 ## Roles
@@ -46,6 +47,24 @@ The organizer overview (`src/server/metrics.ts`) tracks:
 - **Mentor capacity in use**: active matches ÷ total capacity of approved mentors.
 - Lists of quiet matches and requests waiting 3+ days.
 
+## Analytics service (Python)
+
+A small FastAPI service in [`s2s_analytics/`](s2s_analytics/) does the number crunching. The Next.js app calls it server-side.
+
+| Endpoint | Used by | What it does |
+|---|---|---|
+| `POST /api/analytics/score` | Organizer's request page | Ranks mentors for a request (offered to help → knows the topic → free spots) |
+| `POST /api/analytics/summary` | Overview → **By topic** | Pilot metrics per topic: completion rate, time to match, waiting requests |
+| `POST /api/analytics/export` | Overview → **Export CSV** | One row per request with outcome and durations, for spreadsheets |
+| `GET /api/analytics/health` | Monitoring | Liveness check |
+
+How it fits together:
+- **Deployment.** On Vercel, each file in [`api/analytics/`](api/analytics/) becomes a Python serverless function on the same domain as the app. Locally, run it with `npm run analytics:dev`.
+- **Auth.** Every call carries a token derived from `BETTER_AUTH_SECRET` with HMAC-SHA256, so no extra secret is needed and outside callers get `401`.
+- **Privacy.** Only opaque IDs, topics, timestamps and statuses are sent. Names, emails and feedback comments stay in the Next.js app.
+- **Resilience.** If the service is missing, slow (3 s timeout) or returns something unexpected, scoring falls back to the identical TypeScript rules in `src/lib/match-score.ts`, and the topic table and CSV button are hidden.
+- **No drift.** [`tests/fixtures/match-score-cases.json`](tests/fixtures/match-score-cases.json) holds the expected rankings, and both pytest and Vitest run against it. In CI, the TypeScript integration tests also run against the real Python service.
+
 ## Local setup
 
 Requirements: Node 24+ and Docker.
@@ -60,6 +79,13 @@ npm run dev
 ```
 
 Open http://localhost:3000.
+
+Optional, for the Python analytics service (Python 3.12 via [uv](https://docs.astral.sh/uv/)):
+
+```bash
+npm run py:setup              # once
+npm run analytics:dev         # in a second terminal, with ANALYTICS_URL="http://127.0.0.1:8000" in .env
+```
 
 **Signing in locally:** without `RESEND_API_KEY`, magic-link emails are printed to the dev server terminal, so you can click the link from there. The seed creates demo accounts for each role:
 
@@ -78,6 +104,9 @@ The Google button appears only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET
 |---|---|
 | `npm run dev` | Start the dev server |
 | `npm test` | Run all tests (uses the `matchmentor_test` database) |
+| `npm run py:setup` | Create `.venv` with Python 3.12 and install the analytics service's dependencies (needs [uv](https://docs.astral.sh/uv/)) |
+| `npm run analytics:dev` | Run the Python analytics service on port 8000 (set `ANALYTICS_URL="http://127.0.0.1:8000"` in `.env`) |
+| `npm run py:test` / `npm run py:lint` | pytest and ruff for the analytics service |
 | `npm run lint` / `npm run typecheck` | Static checks |
 | `npm run db:migrate` | Create/apply a migration after editing `prisma/schema.prisma` |
 | `npm run db:seed` | Re-run the seed (idempotent) |
@@ -87,11 +116,13 @@ The Google button appears only when `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET
 ## Project layout
 
 ```
+api/analytics/       Vercel entry points for the Python service
+s2s_analytics/       Python analytics service: scoring, metrics, CSV export, auth
 prisma/              schema, migrations, seed
 src/app/             routes: landing, sign-in, (app)/onboarding, student, mentor, organizer
 src/components/      shared UI (ui/ = shadcn components, forms/ = form fields and hooks)
 src/lib/             auth, data access layer, roles, db, email
 src/server/          business logic: validation, permissions, requests, mentoring, matching, emails
 src/proxy.ts         optimistic auth redirect
-tests/               integration tests and test helpers
+tests/               integration tests, Python tests (tests/python), shared fixtures
 ```

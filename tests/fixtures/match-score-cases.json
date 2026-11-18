@@ -1,0 +1,55 @@
+{
+  "description": "Shared cases for mentor scoring. Run by both tests/python/test_scoring.py (Python service) and src/lib/match-score.test.ts (TypeScript fallback) so the two can't drift apart.",
+  "cases": [
+    {
+      "name": "interest beats topic, topic beats free capacity, full mentors sink",
+      "candidates": [
+        { "mentorId": "free", "interested": false, "topicMatch": false, "activeMatches": 0, "capacity": 10 },
+        { "mentorId": "full-but-interested", "interested": true, "topicMatch": true, "activeMatches": 3, "capacity": 3 },
+        { "mentorId": "topic", "interested": false, "topicMatch": true, "activeMatches": 0, "capacity": 3 },
+        { "mentorId": "interested", "interested": true, "topicMatch": false, "activeMatches": 0, "capacity": 3 }
+      ],
+      "expected": [
+        { "mentorId": "interested", "score": 115, "remaining": 3, "reasons": ["Offered to help", "3 spots free"] },
+        { "mentorId": "topic", "score": 65, "remaining": 3, "reasons": ["Knows this topic", "3 spots free"] },
+        { "mentorId": "free", "score": 50, "remaining": 10, "reasons": ["10 spots free"] },
+        {
+          "mentorId": "full-but-interested",
+          "score": -850,
+          "remaining": 0,
+          "reasons": ["Offered to help", "Knows this topic", "At capacity"]
+        }
+      ]
+    },
+    {
+      "name": "more free spots break ties; singular wording for one spot",
+      "candidates": [
+        { "mentorId": "busy", "interested": false, "topicMatch": true, "activeMatches": 2, "capacity": 3 },
+        { "mentorId": "open", "interested": false, "topicMatch": true, "activeMatches": 0, "capacity": 3 }
+      ],
+      "expected": [
+        { "mentorId": "open", "score": 65, "remaining": 3, "reasons": ["Knows this topic", "3 spots free"] },
+        { "mentorId": "busy", "score": 55, "remaining": 1, "reasons": ["Knows this topic", "1 spot free"] }
+      ]
+    },
+    {
+      "name": "equal scores keep their input order",
+      "candidates": [
+        { "mentorId": "first", "interested": false, "topicMatch": false, "activeMatches": 1, "capacity": 2 },
+        { "mentorId": "second", "interested": false, "topicMatch": false, "activeMatches": 0, "capacity": 1 }
+      ],
+      "expected": [
+        { "mentorId": "first", "score": 5, "remaining": 1, "reasons": ["1 spot free"] },
+        { "mentorId": "second", "score": 5, "remaining": 1, "reasons": ["1 spot free"] }
+      ]
+    },
+    {
+      "name": "over capacity counts as zero free spots",
+      "candidates": [
+        { "mentorId": "over", "interested": false, "topicMatch": false, "activeMatches": 5, "capacity": 2 }
+      ],
+      "expected": [{ "mentorId": "over", "score": -1000, "remaining": 0, "reasons": ["At capacity"] }]
+    },
+    { "name": "no candidates", "candidates": [], "expected": [] }
+  ]
+}
